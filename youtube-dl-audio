@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+youtube-dl --proxy socks5://127.0.0.1:7890 -x --audio-format mp3 $@
+

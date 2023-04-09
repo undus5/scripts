@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+# Source: https://gist.github.com/guidocella/0ca7777158747290742aa444db6da256
+
+pattern="seg-([0-9]*)"
+
+if [[ ! $1 =~ $pattern ]]; then
+    printf "Usage: avgle url_of_last_segment\n\n"
+    printf "HowTo:\n"
+    printf "1. visit a video page, open the network tab of the dev tools.\n"
+    printf "2. seek to the end of the video and copy the url of the last .ts segment.\n"
+    printf "   (the .m3u8 playlist is encoded and therefore harder to get)\n"
+    exit 1
+fi
+
+url=$(echo $1 | sed -E "s/${pattern}/seg-[1-\1]/")
+referer="https://avgle.com"
+tmp=/tmp
+ts=${tmp}/*.ts
+
+clean_ts() {
+    # check if ts files exist
+    if compgen -G $ts > /dev/null; then
+        printf "cleaning $ts ... "
+        rm $ts
+        printf "done\n"
+    fi
+}
+
+curl --remote-name --output-dir $tmp --referer $referer $url
+
+if [[ $? != 0 ]]; then
+    clean_ts
+    exit 1
+fi
+
+concat=$(ls -tr $ts | paste -sd '|')
+
+if [[ -z "$2" ]]; then
+    target_path="avgle-${RANDOM}.mp4"
+else
+    target_path=$2
+fi
+
+ffmpeg -i concat:$concat -c copy $target_path
+
+clean_ts
+
