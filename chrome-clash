@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+bkr() {
+    (nohup "$@" &>/dev/null &)
+}
+
+bkr google-chrome-stable --proxy-server=127.0.0.1:7890
+
